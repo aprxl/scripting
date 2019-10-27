@@ -26,9 +26,17 @@ end
 
 -- Create our main class
 local main = main_c.new()
+
+-- Initiate our fonts
+local font_main = draw.CreateFont("Verdana", 30, 500)
 --endregion
 
 --region Menu
+
+-- Create color variables
+local clr_arrows = gui.ColorEntry("crimsync_arrows", "Crimsync arrows", 255, 255, 255, 125)
+local clr_outline = gui.ColorEntry("crimsync_outline", "Crimsync outline", 100, 100, 100, 200)
+local clr_outline_inv = gui.ColorEntry("crimsync_outline_inv", "Crimsync outline inverted", 50, 105, 170, 200)
 
 -- Create menu elements
 local window = gui.Window("crimsync", "Crimsync settings", 1000, 500, 1015, 350)
@@ -128,48 +136,6 @@ local function get_value(var, complement)
 
 end
 
---- Renders a triangle
---- @param x
---- @param y
---- @param size
---- @param narrowness
-local function custom_triangle(x, y, size, narrowness, dir)
-
-    for i=0, size do
-
-        if dir == 1 then -- left
-
-            draw.Color(2, 2, 2, 155)
-            draw.Line(x + i + 1 - size / 2, y - i / narrowness + 1, x + i + 1 - size / 2, y + i / narrowness + 1)
-            draw.Color(255, 255, 255, 155)
-            draw.Line(x + i - size / 2, y - i / narrowness, x + i - size / 2, y + i / narrowness)
-
-        elseif dir == 2 then -- right
-
-            draw.Color(2, 2, 2, 155)
-            draw.Line(x - i - 1 + size / 2, y - i / narrowness + 1, x - i - 1 + size / 2, y + i / narrowness + 1)
-            draw.Color(255, 255, 255, 155)
-            draw.Line(x - i + size / 2, y - i / narrowness, x - i + size / 2, y + i / narrowness)
-
-        elseif dir == 3 then -- down
-
-            draw.Color(2, 2, 2, 155)
-            draw.Line(x + i / narrowness + 1, y - i - 1, x - i / narrowness + 1, y - i - 1)
-            draw.Color(255, 255, 255, 155)
-            draw.Line(x + i / narrowness, y - i, x - i / narrowness, y - i)
-
-        elseif dir == 4 then -- up
-
-            draw.Color(2, 2, 2, 155)
-            draw.Line(x + i / narrowness + 1, y + i - 1, x - i / narrowness + 1, y + i - 1)
-            draw.Color(255, 255, 255, 155)
-            draw.Line(x + i / narrowness, y + i, x - i / narrowness, y + i)
-
-        end
-
-    end
-
-end
 --endregion
 
 --- Updates the antiaim type
@@ -332,6 +298,50 @@ function main.do_desync()
 
 end
 
+local arrows = { [0] = {pos = 0, text = ""}, [1] = {pos = -70, text = "◄"}, [2] = {pos = 45, text = "►"}, [3] = {pos = -15, text = "▼"} }
+--- Draws the manual anti-aim indicators
+function main.draw_indicators()
+
+    local local_player = entities.GetLocalPlayer()
+
+    if not local_player or not local_player:IsAlive() then
+        return
+    end
+
+    -- Get drawing properties
+    local x, y = draw.GetScreenSize()
+    local state = gui.GetValue("m_state")
+    draw.SetFont(font_main)
+
+    local outline_clr = main.inverted and clr_outline_inv or clr_outline
+
+    -- Draw box outline
+    draw.Color(outline_clr:GetValue())
+    draw.OutlinedRect( x / 2 - 91, y - 161, x / 2 + 91, y - 101)
+
+    -- Draw box background
+    draw.Color(25, 25, 25, 125)
+    draw.FilledRect( x / 2 - 90, y - 160, x / 2 + 90, y - 100)
+
+    -- Draw dormant indicators
+    -- Left
+    draw.Color( 10, 10, 10, 200 )
+    draw.Text( x / 2 - 70, y - 145, "◄")
+
+    -- Center
+    draw.Color( 10, 10, 10, 200 )
+    draw.Text( x / 2 - 15, y - 145, "▼")
+
+    -- Right
+    draw.Color( 10, 10, 10, 200 )
+    draw.Text( x / 2 + 45, y - 145, "►")
+
+    -- Draw active indicator
+    draw.Color( clr_arrows:GetValue() )
+    draw.Text( x / 2 + arrows[state].pos, y - 145, arrows[state].text)
+
+end
+
 --endregion
 
 --region Callbacks
@@ -348,7 +358,7 @@ callbacks.Register( "Draw", function()
     local m_state = gui.GetValue("m_state")
 
     -- Draw our manual anti-aimbot indicators
-    custom_triangle(x / 2, y / 2 + 55, 15, 2, m_state)
+    main.draw_indicators()
 
 end
 )
