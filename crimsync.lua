@@ -3,6 +3,7 @@
 --- Title: Crimsync
 --- Author: april#0001
 --- Description: Recreates onetap's anti-aimbot system, originally made by Salvatore#0850
+--- Version: 1.2
 ---
 
 --region main
@@ -39,11 +40,12 @@ local clr_outline = gui.ColorEntry("crimsync_outline", "Crimsync outline", 100, 
 local clr_outline_inv = gui.ColorEntry("crimsync_outline_inv", "Crimsync outline inverted", 50, 105, 170, 200)
 
 -- Create menu elements
-local window = gui.Window("crimsync", "Crimsync settings", 1000, 500, 1015, 350)
+local window = gui.Window("crimsync", "Crimsync settings", 250, 500, 1265, 350)
 local standing = gui.Groupbox(window, "Standing", 15, 15, 235, 285)
 local running = gui.Groupbox(window, "Running", 265, 15, 235, 285)
 local slowwalk = gui.Groupbox(window, "Slow-walking", 515, 15, 235, 285)
 local manualaa = gui.Groupbox(window, "Manual anti-aiming", 765, 15, 235, 285)
+local options = gui.Groupbox(window, "Lean options", 1015, 15, 235, 285)
 
 local static_vars = gui.Groupbox(window, "static_vars", 0, 1020, 0, 0)
 
@@ -74,11 +76,16 @@ local choke_limit = {
     [3] = gui.Slider(slowwalk, "slowwalk_choke", "Choke limit", 10, 1, 16)
 }
 
+local options_elements = {
+    [1] = gui.Slider(options, "crimsync_fakelimit", "Max lean", 60, 0, 60),
+    [2] = gui.Checkbox(options, "crimsync_freestand", "Freestanding", 0)
+}
+
 local manual_hotkeys = {
     [1] = gui.Keybox( manualaa, "manual_left", "Override left", 0x5A ),
     [2] = gui.Keybox( manualaa, "manual_right", "Override right", 0x43 ),
     [3] = gui.Keybox( manualaa, "manual_back", "Override back", 0x58 ),
-    [4] = gui.Keybox( manualaa, "manual_inv", "Invert", 0x56 )
+    [4] = gui.Keybox( options, "manual_inv", "Invert", 0x56 )
 }
 
 local desync_modes = {
@@ -103,7 +110,6 @@ local desync_modes = {
         [2] = gui.Checkbox(desync_boxes[4], "manual_twist", "Twist", 0)
     }
 }
-
 
 --endregion
 
@@ -229,10 +235,7 @@ end
 
 --- Handles your menu
 function main.menu_handle()
-    if input.IsButtonPressed( gui.GetValue( "msc_menutoggle" ) ) then
-        main.menu = not main.menu
-    end
-    window:SetActive(main.menu)
+    window:SetActive(gui.Reference("MENU"):IsActive())
 end
 
 --- Updates your anti-aim
@@ -257,6 +260,11 @@ function main.do_antiaim()
         [3] = 0 + lean
     }
 
+    -- Do freestanding
+    if options_elements[2]:GetValue() then
+        gui.SetValue("rbot_antiaim_autodir", main.manual_antiaiming and 0 or 1)
+    end
+
     -- Set anti-aim values
     gui.SetValue("rbot_antiaim_stand_real_add", directions[m_state])
     gui.SetValue("rbot_antiaim_move_real_add", directions[m_state])
@@ -270,7 +278,13 @@ function main.do_antiaim()
     local twist_label = get_value(current_type, "_twist")
     local choke_label = get_value(choke_type, "_choke")
 
-    gui.SetValue("msc_fakelag_value", gui.GetValue(twist_label) and 4 or gui.GetValue(choke_label))
+    -- Fakeduck override
+    if input.IsButtonDown(gui.GetValue("rbot_antiaim_fakeduck")) then
+        gui.SetValue("msc_fakelag_value", 15)
+        return
+    end
+
+    gui.SetValue("msc_fakelag_value", gui.GetValue(twist_label) and 2 or gui.GetValue(choke_label))
 
 end
 
@@ -291,8 +305,9 @@ function main.do_desync()
     -- Fix lower body target
     local current_type = main.update_state()
     local desync_label = get_value(current_type, "_desync")
+    local max = options_elements[1]:GetValue()
 
-    local target_angles = gui.GetValue(desync_label) and local_player:GetProp("m_angEyeAngles[1]") + (main.inverted and 120 or -120) or local_player:GetProp("m_angEyeAngles[1]")
+    local target_angles = gui.GetValue(desync_label) and local_player:GetProp("m_angEyeAngles[1]") + (main.inverted and max or -max) or local_player:GetProp("m_angEyeAngles[1]")
 
     local_player:SetProp("m_flLowerBodyYawTarget", target_angles)
 
