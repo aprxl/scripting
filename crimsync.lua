@@ -3,7 +3,6 @@
 --- Title: Crimsync
 --- Author: april#0001
 --- Description: Recreates onetap's anti-aimbot system, originally made by Salvatore#0850
---- Version: 1.2
 ---
 
 --region main
@@ -179,10 +178,10 @@ local m_state = gui.Slider(static_vars, "m_state", "m_state", 0, 0, 3)
 --- Handles the input system for the manual anti-aim binds
 function main.do_manualaa()
 
-    if gui.GetValue("manual_left") == 0 or
-       gui.GetValue("manual_right") == 0 or
-       gui.GetValue("manual_back") == 0 or 
-       gui.GetValue("manual_inv") == 0 then
+    if manual_hotkeys[1]:GetValue() == 0 or
+       manual_hotkeys[1]:GetValue() == 0 or
+       manual_hotkeys[1]:GetValue() == 0 or
+       manual_hotkeys[1]:GetValue() == 0 then
         return
     end
 
@@ -277,12 +276,6 @@ function main.do_antiaim()
 
     local twist_label = get_value(current_type, "_twist")
     local choke_label = get_value(choke_type, "_choke")
-
-    -- Fakeduck override
-    if input.IsButtonDown(gui.GetValue("rbot_antiaim_fakeduck")) then
-        gui.SetValue("msc_fakelag_value", 15)
-        return
-    end
 
     gui.SetValue("msc_fakelag_value", gui.GetValue(twist_label) and 2 or gui.GetValue(choke_label))
 
