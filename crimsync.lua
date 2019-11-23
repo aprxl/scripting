@@ -15,13 +15,31 @@ function main_c.new()
     local properties = {
         menu = true,
 
-        modes = {"Desync", "Twist", "Anti-balance adjust"},
+        modes = {"Desync", "Anti-balance adjust"},
 
         manual_antiaiming = false,
         inverted = false
     }
 
     return properties
+end
+
+--- @class col_t
+local col_t = {}
+
+--- Creates a new color vector
+--- @param r
+--- @param g
+--- @param b
+--- @param a
+--- @return col_t
+function col_t.new(r, g, b, a)
+    r = r or 255
+    g = g or 255
+    b = b or 255
+    a = a or 255
+
+    return {r = r, g = g, b = b, a = a}
 end
 
 -- Create our main class
@@ -35,8 +53,7 @@ local font_main = draw.CreateFont("Verdana", 30, 500)
 
 -- Create color variables
 local clr_arrows = gui.ColorEntry("crimsync_arrows", "Crimsync arrows", 255, 255, 255, 125)
-local clr_outline = gui.ColorEntry("crimsync_outline", "Crimsync outline", 100, 100, 100, 200)
-local clr_outline_inv = gui.ColorEntry("crimsync_outline_inv", "Crimsync outline inverted", 50, 105, 170, 200)
+local clr_outline_inv = gui.ColorEntry("crimsync_outline_inv", "Crimsync arrows desync", 50, 105, 170, 200)
 
 -- Create menu elements
 local window = gui.Window("crimsync", "Crimsync settings", 250, 500, 1265, 350)
@@ -63,10 +80,10 @@ local inverted_body_lean = {
 }
 
 local desync_boxes = {
-    [1] = gui.Multibox(standing, "Crooked modes"),
-    [2] = gui.Multibox(running, "Crooked modes"),
-    [3] = gui.Multibox(slowwalk, "Crooked modes"),
-    [4] = gui.Multibox(manualaa, "Crooked modes")
+    [1] = gui.Combobox(standing, "standing_crooked", "Crooked modes", "Eye yaw", "Desync", "Sway", "Jitter"),
+    [2] = gui.Combobox(running, "running_crooked", "Crooked modes", "Eye yaw", "Desync", "Sway", "Jitter"),
+    [3] = gui.Combobox(slowwalk, "slowwalk_crooked", "Crooked modes", "Eye yaw", "Desync", "Sway", "Jitter"),
+    [4] = gui.Combobox(manualaa, "manual_crooked", "Crooked modes", "Eye yaw", "Desync", "Sway", "Jitter")
 }
 
 local choke_limit = {
@@ -85,29 +102,6 @@ local manual_hotkeys = {
     [2] = gui.Keybox( manualaa, "manual_right", "Override right", 0x43 ),
     [3] = gui.Keybox( manualaa, "manual_back", "Override back", 0x58 ),
     [4] = gui.Keybox( options, "manual_inv", "Invert", 0x56 )
-}
-
-local desync_modes = {
-    [1] = {
-        [1] = gui.Checkbox(desync_boxes[1], "standing_desync", "Desync", 0),
-        [2] = gui.Checkbox(desync_boxes[1], "standing_twist", "Twist", 0),
-        --[3] = gui.Checkbox(desync_boxes[1], "standing_anti", "Anti-balance adjust", 0)
-    },
-
-    [2] = {
-        [1] = gui.Checkbox(desync_boxes[2], "running_desync", "Desync", 0),
-        [2] = gui.Checkbox(desync_boxes[2], "running_twist", "Twist", 0)
-    },
-
-    [3] = {
-        [1] = gui.Checkbox(desync_boxes[3], "slowwalk_desync", "Desync", 0),
-        [2] = gui.Checkbox(desync_boxes[3], "slowwalk_twist", "Twist", 0)
-    },
-
-    [4] = {
-        [1] = gui.Checkbox(desync_boxes[4], "manual_desync", "Desync", 0),
-        [2] = gui.Checkbox(desync_boxes[4], "manual_twist", "Twist", 0)
-    }
 }
 
 --endregion
@@ -139,6 +133,90 @@ local function get_value(var, complement)
 
     return nil
 
+end
+
+-- Creates our custom rendering system
+local render = {}
+
+--- Renders a new rectangle
+--- @param x
+--- @param y
+--- @param w
+--- @param h
+--- @param clr
+function render.rectangle(x, y, w, h, clr)
+    draw.Color(clr.r, clr.g, clr.b, clr.a)
+    draw.FilledRect(x, y, x + w, y + h)
+end
+
+--- Renders a new rectangle triangle
+--- @param x
+--- @param y
+--- @param w
+--- @param h
+--- @param clr
+function render.rect_triangle(x, y, w, h, clr)
+    draw.Color(clr.r, clr.g, clr.b, clr.a)
+    draw.Triangle(x, y, x + w, y + h, x, y + h)
+end
+
+--- Renders a new triangle pointing up
+--- @param x
+--- @param y
+--- @param l
+--- @param clr
+function render.eq_triangle_up(x, y, l, clr)
+    draw.Color(clr.r, clr.g, clr.b, clr.a)
+    draw.Triangle(x, y - l / 2, x + l / 2, y + l / 2, x - l / 2, y + l / 2)
+end
+
+--- Renders a new triangle pointing down
+--- @param x
+--- @param y
+--- @param l
+--- @param clr
+function render.eq_triangle_down(x, y, l, clr)
+    draw.Color(clr.r, clr.g, clr.b, clr.a)
+    draw.Triangle(x - l / 2, y - l / 2, x + l / 2, y - l / 2, x, y + l / 2)
+end
+
+--- Renders a new text
+--- @param x
+--- @param y
+--- @param centered
+--- @param shadow
+--- @param font
+--- @param clr
+--- @param text
+function render.text(x, y, centered, shadow, font, clr, text)
+    draw.Color(clr.r, clr.g, clr.b, clr.a)
+    draw.SetFont(font)
+
+    local w, h = draw.GetTextSize(text)
+    x = centered and x - w / 2 or x
+
+    if shadow then
+        draw.TextShadow(x, y, text)
+    end
+
+    draw.Text(x, y, text)
+end
+
+--- Renders a new circle
+--- @param x
+--- @param y
+--- @param radius
+--- @param outline
+--- @param clr
+function render.circle(x, y, radius, outline, clr)
+    draw.Color(clr.r, clr.g, clr.b, clr.a)
+
+    if outline then
+        draw.OutlinedCircle(x, y, radius)
+        return
+    end
+
+    draw.FilledCircle(x, y, radius)
 end
 
 --endregion
@@ -274,10 +352,9 @@ function main.do_antiaim()
     local velocity = velocity()
     local choke_type = current_type == "manual" and ( ( gui.GetValue( "msc_slowwalk" ) ~= 0 and input.IsButtonDown( gui.GetValue( "msc_slowwalk" ) ) ) and "slowwalk" or (velocity > 0.01 and "running" or "standing") ) or current_type
 
-    local twist_label = get_value(current_type, "_twist")
     local choke_label = get_value(choke_type, "_choke")
 
-    gui.SetValue("msc_fakelag_value", gui.GetValue(twist_label) and 2 or gui.GetValue(choke_label))
+    gui.SetValue("msc_fakelag_value", gui.GetValue(choke_label))
 
 end
 
@@ -297,16 +374,26 @@ function main.do_desync()
 
     -- Fix lower body target
     local current_type = main.update_state()
-    local desync_label = get_value(current_type, "_desync")
+    local desync_label = get_value(current_type, "_crooked")
     local max = options_elements[1]:GetValue()
 
-    local target_angles = gui.GetValue(desync_label) and local_player:GetProp("m_angEyeAngles[1]") + (main.inverted and max or -max) or local_player:GetProp("m_angEyeAngles[1]")
+    local target_angles = function(mode)
+        if mode == 0 then -- Eye yaw
+            return local_player:GetProp("m_angEyeAngles[1]")
+        elseif mode == 1 then -- Desync
+            return local_player:GetProp("m_angEyeAngles[1]") + (main.inverted and max or -max)
+        elseif mode == 2 then -- Sway
+            return local_player:GetProp("m_angEyeAngles[1]") + (-max + math.floor(globals.TickCount() % (max * 2)))
+        elseif mode == 3 then -- Jitter
+            return local_player:GetProp("m_angEyeAngles[1]") + ((globals.TickCount() % 30 > 15 ) and max or -max)
+        end
+    end
 
-    local_player:SetProp("m_flLowerBodyYawTarget", target_angles)
+    local_player:SetProp("m_flLowerBodyYawTarget", target_angles(gui.GetValue(desync_label)))
 
 end
 
-local arrows = { [0] = {pos = 0, text = ""}, [1] = {pos = -70, text = "◄"}, [2] = {pos = 45, text = "►"}, [3] = {pos = -15, text = "▼"} }
+local arrows = { [0] = {pos = {x = 0, y = 0}, text = ""}, [1] = {pos = {x = -50, y = 0}, text = "◄"}, [2] = {pos = {x = 50, y = 0}, text = "►"}, [3] = {pos = {x = 0, y = 50}, text = "▼"} }
 --- Draws the manual anti-aim indicators
 function main.draw_indicators()
 
@@ -321,32 +408,29 @@ function main.draw_indicators()
     local state = gui.GetValue("m_state")
     draw.SetFont(font_main)
 
-    local outline_clr = main.inverted and clr_outline_inv or clr_outline
-
-    -- Draw box outline
-    draw.Color(outline_clr:GetValue())
-    draw.OutlinedRect( x / 2 - 91, y - 161, x / 2 + 91, y - 101)
-
-    -- Draw box background
-    draw.Color(25, 25, 25, 125)
-    draw.FilledRect( x / 2 - 90, y - 160, x / 2 + 90, y - 100)
+    local offset = main.inverted and -50 or 50
 
     -- Draw dormant indicators
     -- Left
-    draw.Color( 10, 10, 10, 200 )
-    draw.Text( x / 2 - 70, y - 145, "◄")
+    render.text(x / 2 - 50, y / 2, true, false, font_main, col_t.new(125, 125, 125, 200), "◄")
 
     -- Center
-    draw.Color( 10, 10, 10, 200 )
-    draw.Text( x / 2 - 15, y - 145, "▼")
+    render.text(x / 2, y / 2 + 50, true, false, font_main, col_t.new(125, 125, 125, 200), "▼")
 
     -- Right
-    draw.Color( 10, 10, 10, 200 )
-    draw.Text( x / 2 + 45, y - 145, "►")
+    render.text(x / 2 + 50, y / 2, true, false, font_main, col_t.new(125, 125, 125, 200), "►")
+
+    -- Overlapping
+    if (state == 1 and main.inverted) or (state == 2 and not main.inverted) then
+        render.text(x / 2 + arrows[state].pos.x, y / 2 + arrows[state].pos.y, true, true, font_main, col_t.new(125, 0, 255, 200), arrows[state].text)
+        return
+    end
 
     -- Draw active indicator
-    draw.Color( clr_arrows:GetValue() )
-    draw.Text( x / 2 + arrows[state].pos, y - 145, arrows[state].text)
+    render.text(x / 2 + arrows[state].pos.x, y / 2 + arrows[state].pos.y, true, true, font_main, col_t.new(clr_arrows:GetValue()), arrows[state].text)
+
+    -- Draw desync indicator
+    render.text(x / 2 + offset, y / 2, true, false, font_main, col_t.new(clr_outline_inv:GetValue()), arrows[main.inverted and 1 or 2].text)
 
 end
 
