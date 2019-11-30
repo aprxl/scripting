@@ -1,4 +1,4 @@
 
 Lua scripts made by april#0001
 
-Powered by gamesense.pub, aimware.net, fatality.win.
+Powered by gamesense.pub, aimware.net, fatality.win and onetap.su.
