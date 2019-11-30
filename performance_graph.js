@@ -179,11 +179,19 @@ function main()
     handle_dragging();
 }
 
+function reset()
+{
+    last_time = Global.Curtime();
+    fps_info = [];
+    ping_info = [];
+}
+
 //endregion
 
 //region callbacks
 
 // Register our callbacks
 Global.RegisterCallback("Draw", "main");
+Global.RegisterCallback("player_connect_full", "reset");
 
 //endregion
