@@ -27,6 +27,22 @@ const window_y = UI.AddSliderInt("performance_window_y", 0, Global.GetScreenSize
 //region functions
 
 /**
+ * Converts a hexadecimal value into ASCII
+ *
+ * @param str1
+ * @returns {string}
+ */
+function hex_to_ascii(str1)
+{
+    var hex  = str1.toString();
+    var str = '';
+    for (var n = 0; n < hex.length; n += 2) {
+        str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+    }
+    return str;
+}
+
+/**
  * Handles the visibility of our menu elements
  */
 function handle_visibility()
@@ -102,7 +118,8 @@ function draw_container()
     Render.FilledRect(x, y + 130, 300, 15, [8, 8, 8, 255]);
 
     // Draw texts
-    Render.String(x + 5, y + 3, 0, "Performance", [200, 200, 200, 200], 10);
+    Render.String(x + 5, y + 4, 0, hex_to_ascii(0xE6), [200, 200, 200, 200], 6);
+    Render.String(x + 20, y + 3, 0, "Performance", [200, 200, 200, 200], 10);
     Render.String(x + 75, y + 30, 1, "FPS", [200, 200, 200, 125], 3);
     Render.String(x + 225, y + 30, 1, "PING", [200, 200, 200, 125], 3);
     Render.String(x + 75, y + 45, 1, Math.floor(1 / Global.Frametime() + 0.5).toString(), [100, 100, 100, 125], 2);
