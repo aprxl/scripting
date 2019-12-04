@@ -123,7 +123,7 @@ function draw_container()
     Render.String(x + 75, y + 30, 1, "FPS", [200, 200, 200, 125], 3);
     Render.String(x + 225, y + 30, 1, "PING", [200, 200, 200, 125], 3);
     Render.String(x + 75, y + 45, 1, Math.floor(1 / Global.Frametime() + 0.5).toString(), [100, 100, 100, 125], 2);
-    Render.String(x + 225, y + 45, 1, Math.floor(Global.GetLatency() + 0.5).toString(), [100, 100, 100, 125], 2);
+    Render.String(x + 225, y + 45, 1, Math.floor(Global.Latency() + 0.5).toString(), [100, 100, 100, 125], 2);
 
     // Updates our fps/ping info every half a second
     if (Global.Curtime() - last_time > 0.5) {
@@ -132,7 +132,7 @@ function draw_container()
 
         // Update values
         fps_info.unshift(1 / Global.Frametime());
-        ping_info.unshift(Global.GetLatency() + 5);
+        ping_info.unshift(Global.Latency() + 5);
     }
 
     // If our arrays reached their limit, then remove the last value
