@@ -134,6 +134,9 @@ const draw_cc = function()
 // Handles the visibility whenever the script is loaded
 handle_visibility();
 
+// Disables the 3D skybox for better looking fog
+Convar.SetString("r_3dsky", "0");
+
 function main()
 {
 
