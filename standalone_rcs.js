@@ -8,18 +8,168 @@
 
 //region main
 
-// Caches our old punch angles
+// Caches our old values
+var old_condition = -1;
 var old_angles = [0, 0, 0];
+var old_index = -1;
+
+// Caches our current weapon category
+var condition = 0;
+
+// Holds the IDs for each weapon in each category
+const weapons = [
+    [1, 2, 3, 4, 30, 32, 36, 61, 63, 64],
+    [7, 8, 10, 13, 14, 16, 28, 39, 60],
+    [9, 11, 38, 40],
+    [17, 19, 23, 24, 26, 33, 34]
+]
+
+//endregion
+
+//region dependencies
+
+/**
+ * @title BetterUI
+ * @version 1.0.0
+ * @description A better UI system for Onetap
+ */
+
+var menu_elements_t = [];
+var menu_c = [];
+const menu_spacer = "                                                                                  ";
+
+
+/**
+ * Creates a new menu label
+ *
+ * @param label {string}
+ */
+menu_c.label = function(label)
+{
+    // Creates the label
+    UI.AddLabel(label);
+}
+
+
+/**
+ * Creates a new menu element
+ *
+ * @param func {function}
+ * @param name {string}
+ * @param label {string},
+ * @param properties {array}
+ */
+menu_c.call = function(func, name, label, properties)
+{
+    // If the label isn't unique
+    if (label in menu_elements_t)
+        throw new Error("[Menu] The label must be unique!");
+
+    // Get properties
+    const final_name = name + menu_spacer + label;
+    var final_props = [final_name];
+    const element_info_t = {
+        name: name,
+        label: label,
+        properties: properties
+    };
+
+    // If our properties aren't null, then pack them together.
+    if (properties !== null)
+    {
+        for (var i = 0; i < properties.length; i++)
+        {
+            final_props.push(properties[i]);
+        }
+    }
+
+    // Create our menu element and return properties
+    func.apply(null, final_props);
+    menu_elements_t[label] = element_info_t;
+}
+
+/**
+ * Gets the value of a menu element
+ *
+ * @param label {string}
+ * @return {any}
+ */
+menu_c.get = function(label)
+{
+    // If the label doesn't exist
+    if (!(label in menu_elements_t))
+        throw new Error("[Menu] This element's label doesn't exist!");
+
+    // Get properties
+    const properties = menu_elements_t[label];
+    const final_name = properties.name + menu_spacer + properties.label;
+
+    // Returns the element's value
+    return UI.GetValue("Misc", "JAVASCRIPT", "Script items", final_name);
+}
+
+/**
+ * Sets the value of a menu element
+ *
+ * @param label {string}
+ * @param value {any}
+ */
+menu_c.set = function(label, value)
+{
+    // If the label doesn't exist
+    if (!(label in menu_elements_t))
+        throw new Error("[Menu] This element's label doesn't exist!");
+
+    // Get properties
+    const properties = menu_elements_t[label];
+    const final_name = properties.name + menu_spacer + properties.label;
+
+    // Set the element's value
+    UI.SetValue("Misc", "JAVASCRIPT", "Script items", final_name, value);
+}
+
+/**
+ * Changes the visibility of a menu elements
+ *
+ * @param label {string}
+ * @param visible {boolean}
+ */
+menu_c.visibility = function(label, visible)
+{
+    // If the label doesn't exist
+    if (!(label in menu_elements_t))
+        throw new Error("[Menu] This element's label doesn't exist!");
+
+    // Get properties
+    const properties = menu_elements_t[label];
+    const final_name = properties.name + menu_spacer + properties.label;
+
+    // Change the element's visibility
+    UI.SetEnabled("Misc", "JAVASCRIPT", "Script items", final_name, visible);
+}
 
 //endregion
 
 //region menu
 
 // Creates our menu elements
-const title = UI.AddLabel("Standalone RCS");
-const rcs_x = UI.AddSliderInt("Pitch control", 0, 100, 50);
-const rcs_y = UI.AddSliderInt("Yaw control", 0, 100, 65);
-const shots = UI.AddSliderInt("Start after x shots", 0, 5);
+const title = menu_c.label("Standalone RCS");
+const current_condition = menu_c.call(UI.AddDropdown, "Current configuration", "rcs_cond", [["Default", "Pistol", "Rifle", "Sniper", "SMG"]]);
+const rcs_x = [
+    menu_c.call(UI.AddSliderInt, "Pitch control", "rcs_pitch_value[0]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Pitch control", "rcs_pitch_value[1]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Pitch control", "rcs_pitch_value[2]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Pitch control", "rcs_pitch_value[3]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Pitch control", "rcs_pitch_value[4]", [0, 100])
+];
+const rcs_y = [
+    menu_c.call(UI.AddSliderInt, "Yaw control", "rcs_yaw_value[0]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Yaw control", "rcs_yaw_value[1]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Yaw control", "rcs_yaw_value[2]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Yaw control", "rcs_yaw_value[3]", [0, 100]),
+    menu_c.call(UI.AddSliderInt, "Yaw control", "rcs_yaw_value[4]", [0, 100])
+];
+const shots = menu_c.call(UI.AddSliderInt, "After x shots fired", "rcs_aftershots", [0, 5]);
 
 //endregion
 
@@ -38,6 +188,19 @@ const clamp = function(v, min, max)
     return Math.min(Math.max(v, min), max);
 }
 
+const table_contains = function(table, value)
+{
+    // Loops for each value inside the array
+    for (var i in table) {
+        // If the table's value matches our value, then return true
+        if (value === table[i])
+            return true;
+    }
+
+    // Otherwise, we didn't find anything so, return false
+    return false;
+}
+
 /**
  * Normalizes a vector of angles
  *
@@ -46,12 +209,99 @@ const clamp = function(v, min, max)
  */
 function normalize_angles(angle)
 {
+    // Clamps our angles
     angle[0] = clamp(angle[0], -89, 89);
     angle[1] = clamp(angle[1], -180, 180);
     angle[2] = 0;
 
+    // Return clamped angles
     return angle;
 }
+
+
+/**
+ * Disables Onetap's RCS system to not cause any glitches
+ */
+function disable_rcs()
+{
+    // Disable Onetap's RCS
+    UI.SetValue("Legit", "GENERAL", "Default config", "Recoil control", 0);
+    UI.SetValue("Legit", "PISTOL", "Pistol config", "Recoil control", 0);
+    UI.SetValue("Legit", "RIFLE", "Rifle config", "Recoil control", 0);
+    UI.SetValue("Legit", "SNIPER", "Sniper config", "Recoil control", 0);
+    UI.SetValue("Legit", "SMG", "SMG config", "Recoil control", 0);
+}
+
+
+/**
+ * Updates the visibility of our menu elements
+ */
+function update_visibility()
+{
+    // Gets the current configuration
+    const _cond = menu_c.get("rcs_cond");
+
+    // If the configuration hasn't been switched then no need to update the visibility
+    if (_cond === old_condition)
+        return;
+
+    // Otherwise, cache the current condition
+    old_condition = _cond;
+
+    // Loops between every condition
+    for (var i = 0; i < 5; i++)
+    {
+        // Check if we should enable it or not
+        const enabled = _cond === i;
+
+        // Update the element's visibility
+        menu_c.visibility("rcs_pitch_value[" + i + "]", enabled);
+        menu_c.visibility("rcs_yaw_value[" + i + "]", enabled);
+    }
+}
+
+
+/**
+ * Updates the current condition
+ */
+function get_weapon()
+{
+    // Get our local player
+    const player = Entity.GetLocalPlayer();
+
+    // If our player ins't valid or if we're dead, return
+    if (!player || !Entity.IsAlive(player))
+        return;
+
+    // Get the weapon's ID
+    const weapon_id = Entity.GetProp(Entity.GetWeapon(player), "CBaseAttributableItem", "m_iItemDefinitionIndex") & 0xFFFF;
+
+    // If we didn't switch between weapons, then no need to update
+    if (weapon_id === old_index)
+        return;
+
+    // Otherwise, cache our current condition
+    old_index = weapon_id;
+
+    // Loops between our unique conditions
+    for (var i = 0; i < weapons.length; i++)
+    {
+        // Checks if our weapon ID matches with any of the other IDs
+        if (table_contains(weapons[i], weapon_id))
+        {
+            // If it does, then update our condition
+            condition = i + 1;
+            return;
+        }
+    }
+
+    // Otherwise, return default condition
+    condition = 0;
+
+}
+
+// Updates the visibility whenever the script is first loaded
+update_visibility();
 
 /**
  * Where the magic happens.
@@ -60,15 +310,19 @@ function normalize_angles(angle)
  */
 function main()
 {
+    // Execute functions
+    get_weapon();
+    update_visibility();
+
     // Gets the properties needed
     const player = Entity.GetLocalPlayer()
 
     const amounts = [
-        UI.GetValue("Misc", "JAVASCRIPT", "Script items", "Pitch control") / 50,
-        UI.GetValue("Misc", "JAVASCRIPT", "Script items", "Yaw control") / 50
+        menu_c.get("rcs_pitch_value[" + condition + "]") / 50,
+        menu_c.get("rcs_yaw_value[" + condition + "]") / 50
     ];
 
-    const shots = UI.GetValue("Misc", "JAVASCRIPT", "Script items", "Start after x shots");
+    const shots = menu_c.get("rcs_aftershots");
 
     // If our player isn't valid or if we're dead
     if (!player || !Entity.IsAlive(player))
