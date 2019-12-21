@@ -300,8 +300,9 @@ function get_weapon()
 
 }
 
-// Updates the visibility whenever the script is first loaded
+// Run these whenever the script is first loaded
 update_visibility();
+disable_rcs();
 
 /**
  * Where the magic happens.
