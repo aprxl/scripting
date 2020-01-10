@@ -3,7 +3,8 @@ How to install:
 1. Open your CSGO's directory (where csgo.exe is located).
 2. Select the downloaded folders.
 3. Drag/Extract them inside CSGO's directory.
-4. Have fun!
+4. Setup your keybinds (otherwise, some features might not work)
+5. Have fun!
 
 Movement pack 2.0
 made by April
