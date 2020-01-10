@@ -6,6 +6,8 @@ How to install:
 4. Setup your keybinds (otherwise, some features might not work)
 5. Have fun!
 
+DISCLAIMER: Some of the features need sv_cheats to be set to 1! Jumpbug and crouchbug are not 100% consistent.
+
 Movement pack 2.0
 made by April
 
