@@ -2,7 +2,7 @@
 *
 * Title: Customizable accent
 * Author: april#0001
-* Description: Brings back the ability to use custom accent on onetap's windows.
+* Description: Brings back the ability to use custom accent on the watermark and keybind window.
 *
 */
 
@@ -519,7 +519,7 @@ color.is_transparent = function(self, tolerance)
 color.shift_hue = function(self, amount)
 {
     // Check if our value(s) are valid
-    if (!amount || !self.h || !self.s || !self.l)
+    if (!amount || typeof self.h == "null" || typeof self.s == "null" || typeof self.l == "null")
         throw new Error("[Color] Invalid color instance and/or shift amount!")
 
     // Shift the amount
@@ -657,6 +657,19 @@ function draw_container(x, y, w, title, font, base_clr)
     const primary_clr = color.rgb_to_hsl(color.new_rgba(accent_clr[0], accent_clr[1], accent_clr[2], accent_clr[3]));
     const secondary_clr = color.shift_lum(primary_clr, 20);
 
+    // Handles the RGB mode
+    if (menu.get(rgb))
+    {
+        // Get the increment amount.
+        const inc = ((1 / menu.get(rgb_speed)) * globals_frametime()) * 360;
+
+        // Shift the hue to get a rainbow effect.
+        const shifted_clr = color.shift_hue(primary_clr, inc);
+
+        // Update the colors.
+        menu.set_color(base_clr, color.unpack(shifted_clr));
+    }
+
     const text_clr = color.new_hexa("#FFFFFF", 255);
     const bg_clr = color.new_hexa("#28282F", 125);
 
@@ -674,6 +687,8 @@ function draw_container(x, y, w, title, font, base_clr)
 // Creates our menu elements
 const windows = menu.call(ui_add_multi_dropdown, "Active windows", "ca_enable", [["Watermark", "Spectators", "Active keybinds", "Team damage"]]);
 const accent = menu.call(ui_add_color_picker, "Accent color", "ca_accent", null);
+const rgb = menu.call(ui_add_checkbox, "RGB colors", "ca_rgbmode", null);
+const rgb_speed = menu.call(ui_add_slider_float, "RGB duration", "ca_rgbspeed", [1, 5]);
 
 // Caches our windows' positions
 const position = {
