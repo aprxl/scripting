@@ -14,8 +14,8 @@ iii. Reinvent the ESP configuring experience by making it a more interactive exp
 
 ### To-do list
 1. ESP preview/window
-- [ ] Onetap-styled window renderer
-- [ ] Make the window draggable
+- [x] Onetap-styled window renderer
+- [x] Make the window draggable
 - [ ] Player model textures
 - [ ] Make the ESP preview
 - [ ] Draggable modules
