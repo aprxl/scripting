@@ -795,17 +795,16 @@ var modules = {
     // }
     //
     hotkeys: [
-        {path: ["Legit", "GENERAL", "General", "Enabled"], conditions: [["Legit", "GENERAL", "General", "Enabled"]], label: "legit aimbot"},
         {path: ["Legit", "GENERAL", "Triggerbot", "Enabled"], conditions: [["Legit", "GENERAL", "General", "Enabled"]], label: "triggerbot"},
-        {path: ["Rage", "GENERAL", "Enabled"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "rage aimbot"},
         {path: ["Rage", "GENERAL", "Hitbox override"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "hitbox override"},
         {path: ["Rage", "GENERAL", "Safe point override"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "safe point override"},
         {path: ["Rage", "GENERAL", "Resolver override"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "resolver override"},
-        {path: ["Rage", "Accuracy", "Minimum damage (on key)"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "damage override"},
+        {path: ["Rage", "Damage", "Minimum damage (on key)"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "damage override"},
         {path: ["Rage", "Exploits", "Hide shots"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "hide shots"},
         {path: ["Rage", "Exploits", "Doubletap"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "doubletap"},
         {path: ["Anti-Aim", "Legit Anti-Aim", "Direction key"], conditions: [["Legit", "GENERAL", "General", "Enabled"]], label: "anti-aim inverter"},
         {path: ["Anti-Aim", "Fake angles", "Inverter"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "anti-aim inverter"},
+        {path: ["Anti-Aim", "Extra", "Slow walk"], conditions: [["Rage", "GENERAL", "Enabled"]], label: "slow walk"},
         {path: ["Visual", "Self", "Freecam", "Enable"], conditions: [["Visual", "Self", "Freecam", "Enable"]], label: "freecam"},
         {path: ["Visual", "View", "Zoom"], conditions: [["Visual", "View", "Zoom"]], label: "zoom"},
         {path: ["Misc", "Movement", "Edge jump"], conditions: [["Misc", "Movement", "Edge jump"]], label: "edge jump"},
@@ -827,7 +826,7 @@ var modules = {
     const update_watermark_text = function( ) {
         
         // Creates "onetap | your username | time"
-        const text = "onetap | " + cheat_get_username( ) + " | ";
+        var text = "onetap | " + cheat_get_username( ) + " | ";
 
         // Gets the server's IP address
         const server_name = world_get_server_string( );
