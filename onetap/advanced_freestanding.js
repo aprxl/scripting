@@ -376,6 +376,8 @@ const smart = menu.call(ui_add_checkbox, "Smart switch", "lby_smart", []);
 
 // Declare our references
 const ref_inverter = menu.reference(["Anti-Aim", "Fake angles", "Inverter"]);
+const ref_inverter_legit = menu.reference(["Anti-Aim", "Legit Anti-Aim", "Direction key"]);
+const ref_ragebot = menu.reference(["Rage", "GENERAL", "General", "Enabled"]);
 
 //endregion
 
@@ -387,8 +389,27 @@ const ref_inverter = menu.reference(["Anti-Aim", "Fake angles", "Inverter"]);
  */
 function update_anti_aim_state(state)
 {
-    if (menu.get_hotkey(ref_inverter) !== state)
-        menu.toggle(ref_inverter);
+    // If our rage aimbot is enabled, than we should invert the
+    // rage anti-aim.
+    if (menu.get(ref_ragebot))
+    {
+        // Check if our inverter's state is the same as our desired one.
+        // If not, then toggle the hotkey to invert it.
+        if (menu.get_hotkey(ref_inverter) !== state)
+            menu.toggle(ref_inverter);
+
+        // Return because we don't wanna do the same to the legit anti-aim's state.
+        return;
+    }
+
+    // Invert the state because the legit anti-aim's inverter is different
+    // from the rage one.
+    state = (state + 1) % 2;
+
+    // Check if our inverter's state is the same as our desired one.
+    // If not, then toggle the hotkey to invert it.
+    if (menu.get_hotkey(ref_inverter_legit) !== state)
+        menu.toggle(ref_inverter_legit);
 }
 
 /**
@@ -568,12 +589,45 @@ function do_indicators( )
     if (!entity_is_valid(me) || !entity_is_alive(me))
         return;
 
-    const x = render_get_screen_size( )[0], y = render_get_screen_size( )[1];
+    // Get our drawing properties.
+    const y = render_get_screen_size( )[1];
+
+    // Get our anti-aim info.
     const yaw = local_get_real_yaw( ), fake = local_get_fake_yaw( );
+    var delta = Math.round(normalize_yaw(yaw - fake) / 2), abs = Math.abs(delta);
 
-    const delta = Math.round(Math.abs(normalize_yaw(yaw - fake)));
+    // If we're using legit anti-aim, invert the delta.
+    // Doing this to fix the indicators because legit
+    // anti-aim inverter is different.
+    if (menu.get(ref_ragebot))
+        delta *= -1;
 
-    render_string(x / 2, y - 250, 1, delta.toString( ), [255, 236, 236, 200], 4);
+    // Render the 'FAKE' indicator
+    // Totally did not copy it from gamesense.
+    render_string(10, y - 99, 0, "FAKE", [10, 10, 10, 125], 4);
+    render_string(10, y - 100, 0, "FAKE", [192 - (abs * 71 / 60), 32 + (abs * 146 / 60), 28, 200], 4);
+
+    // Render the bar's background
+    render_filled_rect(12, y - 68, 64, 4, [10, 10, 10, 125]);
+
+    // Draw this small tile to fix a small issue that was driving me crazy.
+    render_filled_rect(43, y - 67, 1, 2, [232, 232, 232, 200]);
+
+    // Render the desync's length under the bar.
+    render_string(41, y - 63, 1, abs.toString( ), [232, 232, 232, 200], 3);
+    render_circle(48, y - 61, 1, [232, 232, 232, 200]);
+
+    // If our delta is positive, than our desync is headed to the right.
+    if (delta > 0)
+    {
+        // So, fill the bar from the center to the right, accounting for the desync's length.
+        render_filled_rect(44, y - 67, abs * 31 / 60, 2, [232, 232, 232, 200]);
+        return;
+    }
+
+    // If our delta is not positive, than our desync is headed to the left.
+    // So, fill the bar from the center to the left.
+    render_filled_rect(44 - abs * 31 / 60, y - 67, abs * 31 / 60, 2, [232, 232, 232, 200]);
 }
 
 /**
@@ -586,14 +640,17 @@ function on_tick( )
     if (!(menu.get(enable)))
         return;
 
+    // Does the freestanding.
     update_anti_aim( );
 }
 
 function on_frame( )
 {
+    // Checks whether or not our script is enabled.
     if (!(menu.get(enable)))
         return;
 
+    // Draws our indicators
     do_indicators( );
 }
 
@@ -607,8 +664,6 @@ function on_player_hurt( )
     const me = entity_get_local_player( );
     const attacker = entity_get_entity_from_user_i_d(event_get_int("attacker"));
     const userid = entity_get_entity_from_user_i_d(event_get_int("userid"));
-
-    cheat_print("i got hurt!\n");
 
     // Checks if our local player was the one getting hurt and not the one attacking.
     // Or, in other words, check if we got hurt.
