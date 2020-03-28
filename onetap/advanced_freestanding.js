@@ -704,11 +704,6 @@ cheat_register_callback(
     'player_hurt', 'on_player_hurt'
 );
 
-// Register our 'round_start' callback.
-cheat_register_callback(
-    'round_start', 'reset'
-);
-
 // Register our 'player_connect_full' callback.
 cheat_register_callback(
     'player_connect_full', 'reset'
