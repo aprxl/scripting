@@ -136,7 +136,7 @@ menu.label = function(label)
 {
     // Creates the label
     UI.AddLabel(label);
-}
+};
 
 /**
  * Creates a new menu element
@@ -174,7 +174,7 @@ menu.call = function(func, name, label, properties)
     func.apply(null, final_props);
     menu_elements_t[label] = element_info_t;
     return label;
-}
+};
 
 /**
  * Gets the value of a menu element
@@ -194,7 +194,7 @@ menu.get = function(label)
 
     // Returns the element's value
     return UI.GetValue("Misc", "JAVASCRIPT", "Script items", final_name);
-}
+};
 
 /**
  * Gets the value of a menu element
@@ -214,7 +214,7 @@ menu.get_hotkey = function(label)
 
     // Returns the element's value
     return UI.IsHotkeyActive("Misc", "JAVASCRIPT", "Script items", final_name);
-}
+};
 
 /**
  * Gets the value of a menu element
@@ -234,7 +234,7 @@ menu.get_color = function(label)
 
     // Returns the element's value
     return UI.GetColor("Misc", "JAVASCRIPT", "Script items", final_name);
-}
+};
 
 /**
  * Sets the value of a menu element
@@ -254,7 +254,7 @@ menu.set = function(label, value)
 
     // Set the element's value
     UI.SetValue("Misc", "JAVASCRIPT", "Script items", final_name, value);
-}
+};
 
 /**
  * Sets the value of a color picker
@@ -274,7 +274,7 @@ menu.set_color = function(label, color)
 
     // Set the element's value
     UI.SetColor("Misc", "JAVASCRIPT", "Script items", final_name, color);
-}
+};
 
 /**
  * Changes the visibility of a menu elements
@@ -294,13 +294,13 @@ menu.visibility = function(label, visible)
 
     // Change the element's visibility
     UI.SetEnabled("Misc", "JAVASCRIPT", "Script items", final_name, visible);
-}
+};
 
 /**
  * @brief Creates a new 3D vector object based on an array
- * 
+ *
  * @param array {array}
- * @returns array
+ * @returns {Vector3D}
  */
 function vec(array)
 {
@@ -324,7 +324,7 @@ function vec(array)
 
 /**
  * @brief Performs a addition between two 3D vectors.
- * 
+ *
  * @param v1 {array|Vector3D}
  * @param v2 {array|Vector3D}
  * @returns {array|Vector3D}
@@ -341,7 +341,7 @@ function vec_add(v1, v2)
 
 /**
  * @brief Creates a new box instance
- * 
+ *
  * @param  {number} x
  * @param  {number} y
  * @param  {number} x2
@@ -377,8 +377,9 @@ function box(x, y, x2, y2)
 
 /**
  * @brief Gets the bounding box area and points of an entity
- * 
+ *
  * @param  {number|EntityID} ent
+ * @param {number} padding
  * @returns {array|Box}
  */
 function entity_get_box(ent, padding)
@@ -409,11 +410,12 @@ function entity_get_box(ent, padding)
         !points[5][0] || !points[5][1] ||
         !points[6][0] || !points[6][1] ||
         !points[7][0] || !points[7][1])
-        return;
+        return null;
 
     // Declare some values...
-    var left = right = points[3][0];
-    var top = bottom = points[3][1];
+    var left, right, top, bottom;
+    left = right = points[3][0];
+    top = bottom = points[3][1];
 
     // Get the best points to make our box
     for (var i = 0; i < points.length; i++)
@@ -426,7 +428,7 @@ function entity_get_box(ent, padding)
 
         if (right < points[i][0])
             right = points[i][0];
-        
+
         if (top > points[i][1])
             top = points[i][1];
     }
@@ -437,7 +439,7 @@ function entity_get_box(ent, padding)
 
 /**
  * @brief Renders an outlined string with custom font
- * 
+ *
  * @param  {number} x
  * @param  {number} y
  * @param  {number} align
@@ -459,7 +461,7 @@ function render_string_custom_outline(x, y, align, text, color, font)
 
 /**
  * @brief Checks whether or not a point is shown on your screen
- * 
+ *
  * @param  {number} x
  * @param  {number} y
  */
@@ -476,7 +478,7 @@ function point_inside_screen(x, y)
 
 /**
  * @brief Clamps a value inside two boundaries
- * 
+ *
  * @param  {number} v
  * @param  {number} floor
  * @param  {number} ceil
@@ -487,6 +489,37 @@ function clamp(v, floor, ceil)
     return Math.max(Math.min(v, ceil), floor);
 }
 
+/**
+ * @brief Renders an outlined rectangle.
+ *
+ * @param x {number}
+ * @param y {number}
+ * @param w {number}
+ * @param h {number}
+ * @param color {array}
+ */
+function render_outlined_rect(x, y, w, h, color)
+{
+    render_rect(x - 1, y - 1, w + 2, h + 2, [25, 25, 25, 75]);
+    render_rect(x, y, w, h, color);
+    render_rect(x + 1, y + 1, w - 2, h - 2, [25, 25, 25, 75]);
+}
+
+/**
+ * @brief Renders an outlined rectangle.
+ *
+ * @param x {number}
+ * @param y {number}
+ * @param w {number}
+ * @param h {number}
+ * @param color {array}
+ */
+function render_outlined_rect_override(x, y, w, h, color)
+{
+    render_rect(x - 1, y + 2, w + 2, h - 2, [25, 25, 25, 75]);
+    render_rect(x, y, w, h, color);
+}
+
 //endregion
 
 //region menu
@@ -495,8 +528,9 @@ function clamp(v, floor, ceil)
 const enable = menu.call(ui_add_checkbox, "[k] enable", "kitkat_switch", null);
 
 // Create the modules
-const bbox = menu.call(ui_add_checkbox, "[k] bounding box", "kitkat_box", null);
+const bbox = menu.call(ui_add_dropdown, "[k] bounding box", "kitkat_box", [["Off", "Normal", "Cornered"]]);
 const bbox_color = menu.call(ui_add_color_picker, "[k] bounding box color", "kitkat_box_color", null);
+const bbox_gradient = menu.call(ui_add_checkbox, "[k] bounding box gradient", "kitkat_box_grad", null);
 const name = menu.call(ui_add_checkbox, "[k] name", "kitkat_name", null);
 const name_color = menu.call(ui_add_color_picker, "[k] name color", "kitkat_name_color", null);
 const health = menu.call(ui_add_checkbox, "[k] health bar", "kitkat_health", null);
@@ -517,13 +551,13 @@ const hitmarker = menu.call(ui_add_checkbox, "[k] screen hitmarker", "kitkat_hit
  * @brief Handles all ESP rendering.
  */
 var esp = {
-/*#define*/ hitmarker_alpha: 0, // The rendering alpha for our hitmarker
-/*#define*/ health: [] // The array that contains all of the player's health. Handles the health bar animation.
+    /*#define*/ hitmarker_alpha: 0, // The rendering alpha for our hitmarker
+    /*#define*/ health: [] // The array that contains all of the player's health. Handles the health bar animation.
 };
 
 /**
  * @brief Sets an initial value for unitialized colors
-*/
+ */
 /*private function*/ esp.setup_colors = function()
 {
     // Create an array containing our color pickers and our desired default colors.
@@ -549,31 +583,53 @@ var esp = {
 }
 /**
  * @brief Renders a box around the given entity
- * 
+ *
  * @param  {number|EntityID} ent
  * @param  {array|Box} box
-*/
+ */
 /*private function*/ esp.box = function(ent, box)
 {
     // Get the bounding box's color
     const color = menu.get_color(bbox_color);
+    const cornered = menu.get(bbox) === 2;
 
     // Checks if the box boundaries are visible and valid
     if (point_inside_screen(box.x, 1) && point_inside_screen(box.x2, 1))
     {
-        // Renders the bounding box
-        render_rect(box.x - 1, box.y - 1, box.w + 2, box.h + 2, [25, 25, 25, 75]);
-        render_rect(box.x, box.y, box.w, box.h, color);
-        render_rect(box.x + 1, box.y + 1, box.w - 2, box.h - 2, [25, 25, 25, 75]);
+        // Render the box's gradient.
+        if (menu.get(bbox_gradient))
+            render_gradient_rect(box.x + 1, box.y + 1, box.w - 2, box.h - 2, 0, [0, 0, 0, 0], color);
+
+        // Check if our bounding box mode is set to cornered.
+        if (cornered)
+        {
+            const quarter_x = box.w / 4, quarter_y = box.h / 4;
+
+            render_line(box.x, box.y, box.x + quarter_x, box.y, color);
+            render_line(box.x + quarter_x * 3, box.y, box.x + quarter_x * 4, box.y, color);
+            render_line(box.x, box.y2, box.x + quarter_x, box.y2, color);
+            render_line(box.x + quarter_x * 3, box.y2, box.x + quarter_x * 4, box.y2, color);
+
+            render_line(box.x, box.y, box.x, box.y + quarter_y, color);
+            render_line(box.x, box.y + quarter_y * 3, box.x, box.y + quarter_y * 4, color);
+            render_line(box.x2, box.y, box.x2, box.y + quarter_y, color);
+            render_line(box.x2, box.y + quarter_y * 3, box.x2, box.y + quarter_y * 4, color);
+
+            return;
+        }
+
+        // Renders the normal bounding box
+        render_outlined_rect(box.x, box.y, box.w, box.h, color);
     }
-}
+};
+
 /**
  * @brief Renders the name of a given entity
- * 
+ *
  * @param  {number|EntityID} ent
  * @param  {array|Box} box
  * @param  {number|Font} font
-*/
+ */
 /*private function*/ esp.name = function(ent, box, font)
 {
     // Get our drawing properties
@@ -585,11 +641,11 @@ var esp = {
 }
 /**
  * @brief Renders the health of a given entity
- * 
+ *
  * @param  {number|EntityID} ent
  * @param  {array|Box} box
  * @param  {number|Font} font
-*/
+ */
 /*private function*/ esp.health = function(ent, box, font)
 {
     // Get our drawing properties
@@ -635,11 +691,11 @@ var esp = {
 }
 /**
  * @brief Renders the name of the weapon of a given entity
- * 
+ *
  * @param  {array|Box} box
  * @param  {number|EntityID} wpn
  * @param  {number|Font} font
-*/
+ */
 /*private function*/ esp.weapon = function(box, wpn, font)
 {
     // Get our drawing properties
@@ -672,15 +728,15 @@ var esp = {
 
 /**
  * @brief Renders the remaining ammo of the weapon of a given entity
- * 
+ *
  * @param  {array|Box} box
  * @param  {number|EntityID} wpn
-*/
+ */
 /*private function*/ esp.ammo = function(box, wpn)
 {
     // Get our drawing properties..
-    const ammo = entity_get_prop(wpn, "CBaseCombatWeapon", "m_iClip1");
-    const clip = weapon_info[entity_get_name(wpn)].clip
+    var ammo = entity_get_prop(wpn, "CBaseCombatWeapon", "m_iClip1");
+    var clip = weapon_info[entity_get_name(wpn)].clip
 
     // And drawing color
     const color = menu.get_color(ammo_color)
@@ -696,13 +752,13 @@ var esp = {
 
 /**
  * @brief Renders a hitmarker on the center of the screen whenever you hurt another player.
-*/
+ */
 /*private function*/ esp.hitmarker = function()
 {
     // Checks whether or not we should draw the hitmarker
     if (this.hitmarker_alpha === 0)
         return;
-    
+
     // Get our drawing properties
     const x = render_get_screen_size()[0], y = render_get_screen_size()[1];
     const inc = globals_frametime() * 255;
@@ -719,7 +775,7 @@ var esp = {
 
 /**
  * @brief Updates the hitmarker's alpha whenever you hurt another player.
-*/
+ */
 /*private function*/ esp.handle_damage = function()
 {
     // Get our entities
@@ -737,10 +793,10 @@ var esp = {
 
 /**
  * @brief Renders the plugin's watermark
- * 
+ *
  * @type fps {number} The cached FPS count
  * @type last_update {number} The timestamp of the last FPS update.
- * 
+ *
  * @param  {number|Font} font
  */
 var fps = 0;
@@ -779,12 +835,12 @@ var last_update = 0;
 
 /**
  * @brief Handles all of the ESP rendering.
-*/
+ */
 /*private function*/ esp.do = function()
 {
     // Get all of the enemy players.
     const players = entity_get_enemies();
-    
+
     // Creates our fonts
     const fonts = {
         /*#define*/ watermark: render_add_font("Segoe UI", 8, 200), // The font we'll be using at our watermark
@@ -831,7 +887,7 @@ var last_update = 0;
                 // Renders the player's health
                 if (menu.get(health))
                     esp.health(ent, box, fonts.hp);
-                
+
                 // Renders the player's ammo
                 if (menu.get(ammo))
                     esp.ammo(box, wpn);
@@ -844,14 +900,14 @@ var last_update = 0;
     }
 }
 
-// Sets up the colors once at the beggining of the code execution.
+// Sets up the colors once at the beginning of the code execution.
 // Doing this outside any callbacks so we don't override the
 // User's colors.
 esp.setup_colors();
 
 /**
  * @brief Is called on every frame. Used for rendering.
-*/
+ */
 /*private*/ function on_frame_render()
 {
     // Handles and renders our ESP.
@@ -860,7 +916,7 @@ esp.setup_colors();
 
 /**
  * @brief Is called whenever a player is hurt. Used to handle the hitmarkers.
-*/
+ */
 /*private*/ function on_player_hurt()
 {
     // Handles the hitmarkers.
@@ -875,4 +931,4 @@ esp.setup_colors();
 cheat_register_callback('paint', 'on_frame_render');
 cheat_register_callback('player_hurt', 'on_player_hurt');
 
-//endregion  
+//endregion
