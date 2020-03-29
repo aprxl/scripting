@@ -341,6 +341,7 @@ vector.to_array = function(vec)
 function normalize_yaw(angle)
 {
     var adjusted_yaw = angle;
+
     if (adjusted_yaw < -180)
         adjusted_yaw += 360;
 
@@ -358,11 +359,14 @@ function normalize_yaw(angle)
 var plugin = {
     _info: {
         _title: "Advanced body freestanding",
-        _version: "1.0.0",
+        _version: "1.1.0",
         _author: "april#0001"
     },
 
-    last_hit_lby: []
+    last_hit_lby: [],
+    last_target_visibility: false,
+    override_flip: false,
+    last_override_time: globals_curtime( )
 };
 
 //endregion
@@ -373,9 +377,12 @@ var plugin = {
 const enable = menu.call(ui_add_checkbox, "Advanced body freestanding", "lby_enable", []);
 const body = menu.call(ui_add_dropdown, "Body freestanding", "lby_body_mode", [["Hide real angle", "Hide fake angle"]]);
 const smart = menu.call(ui_add_checkbox, "Smart switch", "lby_smart", []);
+const flip = menu.call(ui_add_multi_dropdown, "Body inverter flip", "lby_body", [["Walk", "Run", "In air"]]);
+
 
 // Declare our references
 const ref_inverter = menu.reference(["Anti-Aim", "Fake angles", "Inverter"]);
+const ref_bodyflip = menu.reference(["Anti-Aim", "Fake angles", "Inverter flip"]);
 const ref_inverter_legit = menu.reference(["Anti-Aim", "Legit Anti-Aim", "Direction key"]);
 const ref_ragebot = menu.reference(["Rage", "GENERAL", "General", "Enabled"]);
 
@@ -416,23 +423,22 @@ function update_anti_aim_state(state)
  * @brief Gets the closest (FOV-based) enemy and returns its entity id.
  * @returns {number}
  */
-function get_closest_target( )
-{
+function get_closest_target( ) {
     // Get our entities.
-    const players = entity_get_enemies( );
-    const me = entity_get_local_player( );
+    const players = entity_get_enemies();
+    const me = entity_get_local_player();
 
     // Initialize our data array.
     const data = {id: null, fov: 180};
 
     // Loop for each player in the server.
-    for (var i = 0; i < players.length; i++)
-    {
+    for (var i = 0; i < players.length; i++) {
         // Get the current player.
         const e = players[i];
 
         // Get our eye's position, the player's head position and our view angles.
-        const destination = vector.new(entity_get_hitbox_position(e, 0)), origin = vector.new(entity_get_eye_position(me));
+        const destination = vector.new(entity_get_hitbox_position(e, 0)),
+            origin = vector.new(entity_get_eye_position(me));
         const angles = vector.new(local_get_view_angles());
 
         // Calculate the FOV distance.
@@ -440,8 +446,7 @@ function get_closest_target( )
 
         // If our FOV distance is lower than the cached one, then it means that
         // there's another player which is even closer to our crosshair.
-        if (fov < data.fov)
-        {
+        if (fov < data.fov) {
             // Cache this entity and our current FOV distance for further
             // calculations.
             data.id = e;
@@ -451,6 +456,39 @@ function get_closest_target( )
 
     // Return the closest entity to our crosshair.
     return data.id;
+}
+
+/**
+ * @brief Gets whether or not our target is visible.
+ * @returns {boolean}
+ */
+function get_target_visibility( )
+{
+    // Get our target.
+    const target = get_closest_target( );
+
+    // If the target is not valid, then it is not visible.
+    if (!target || !entity_is_valid(target))
+        return false;
+
+    // If it is dormant, than it isn't visible either.
+    if (entity_is_dormant(target))
+        return false;
+
+    // Get our tracing properties.
+    const me = entity_get_local_player( );
+    var origin = vector.new(entity_get_eye_position(me)), velocity = vector.new(entity_get_prop(me, "CBasePlayer", "m_vecVelocity[0]")), destination = entity_get_hitbox_position(target, 0);
+
+    // Adds our velocity vector to our origin vector as to make the trace
+    // more accurate when moving.
+    velocity = vector.operate(velocity, vector.new([0.25, 0.25, 0.25]), '*');
+    origin = vector.operate(origin, velocity, '+');
+
+    // Trace a line from our eye position to the target's head and see if we hit anything.
+    const result = trace_line(me, vector.to_array(origin), destination)[0];
+
+    // Return results.
+    return result === target;
 }
 
 /**
@@ -524,6 +562,50 @@ function get_optimal_angle( )
 }
 
 /**
+ * @brief Handles the inverter flip feature.
+ */
+function update_inverter_flip( )
+{
+    // Check if the inverter flip options are enabled.
+    if (!menu.get(flip))
+        return;
+
+    // Get some properties.
+    const visible = get_target_visibility( );
+    const now = globals_curtime( );
+
+    // If it has been 300ms since the last override then
+    // reset the override state.
+    if (plugin.last_override_time + 0.3 < now)
+        plugin.override_flip = false;
+
+    // If our current target visibility isn't the same as
+    // our cached one, then the target became visible/invisible.
+    if (visible !== plugin.last_target_visibility)
+    {
+        // In this case, we should override, so, set override to
+        // true and cache our current time.
+        plugin.override_flip = true;
+        plugin.last_override_time = now;
+    }
+
+    // Cache the target's visibility.
+    plugin.last_target_visibility = visible;
+
+    // Check if we're overriding
+    if (plugin.override_flip)
+    {
+        // Set the inverter flip to nothing.
+        menu.set(ref_bodyflip, 0);
+        return;
+    }
+
+    // If we're not overriding, then set the inverter flip options to
+    // the selected options.
+    menu.set(ref_bodyflip, menu.get(flip));
+}
+
+/**
  * @brief Updates our anti-aim based on the current freestanding mode and input.
  */
 function update_anti_aim( )
@@ -537,6 +619,9 @@ function update_anti_aim( )
 
     // Get if our anti-aim is on smart mode.
     const _smart = menu.get(smart);
+
+    // Handle the inverter flip.
+    update_inverter_flip( );
 
     // If our anti-aim is set to 'Smart', then the entire logic is different.
     // The smart mode does not use freestanding as input, it uses data from
@@ -580,6 +665,9 @@ function update_anti_aim( )
     update_anti_aim_state(get_optimal_angle( ));
 }
 
+/**
+ * @brief Renders our plugin's indicator.
+ */
 function do_indicators( )
 {
     // Get our local player.
