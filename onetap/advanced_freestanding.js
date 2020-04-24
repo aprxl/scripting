@@ -16,12 +16,39 @@ const global_print = Global.Print, global_print_chat = Global.PrintChat, global_
 
 /**
  * @title BetterUI
- * @version 2.0.0
+ * @version 2.0.1
  * @description A better UI system for Onetap
  */
 
-var menu = [];
+var menu = {
+    _class: 'BetterUI'
+};
 const menu_spacer = "                                                                                  ";
+
+/**
+ * Concats two elements into an array without increasing the array length.
+ * Prevents the memory leak in 2.0.0 from happening
+ * 
+ * @param a {array}
+ * @param b {any}
+ */
+menu.concat = function(a, b)
+{
+    // Creates a new array.
+    var arr = [];
+
+    // Push all items from the array 'a' into our array.
+    for (var c in a)
+    {
+        arr.push(a[c]);
+    }
+
+    // Push the value 'b' into our array.
+    arr.push(b);
+
+    // Return the new array.
+    return arr;
+}
 
 /**
  * Creates a new menu label
@@ -131,7 +158,7 @@ menu.get_color = function(elem)
  * Sets the value of a menu element
  *
  * @param elem {array}
- * @param value {any}
+ * @param value {*}
  */
 menu.set = function(elem, value)
 {
@@ -141,10 +168,9 @@ menu.set = function(elem, value)
 
     // Get properties
     const properties = elem;
-    properties.path.push(value);
 
     // Set the element's value
-    UI.SetValue.apply(null, properties.path);
+    UI.SetValue.apply(null, this.concat(properties.path, value));
 };
 
 /**
@@ -161,14 +187,13 @@ menu.set_color = function(elem, color)
 
     // Get properties
     const properties = elem;
-    properties.path.push(color);
 
     // Set the element's value
-    UI.SetColor.apply(null, properties.path);
+    UI.SetColor.apply(null, this.concat(properties.path, color));
 };
 
 /**
- * Sets the value of a color picker
+ * Toggles a hotkey
  *
  * @param elem {array}
  */
@@ -196,12 +221,10 @@ menu.visibility = function(elem, visible)
 
     // Get properties
     const properties = elem;
-    properties.path.push(visible);
 
     // Change the element's visibility
-    UI.SetEnabled.apply(null, properties.path);
+    UI.SetEnabled.apply(null, this.concat(properties.path, visible));
 };
-
 /**
  * @title Vector
  * @description Simple 3d vector system
@@ -692,30 +715,30 @@ function do_indicators( )
 
     // Render the 'FAKE' indicator
     // Totally did not copy it from gamesense.
-    render_string(10, y - 99, 0, "FAKE", [10, 10, 10, 125], 4);
-    render_string(10, y - 100, 0, "FAKE", [192 - (abs * 71 / 60), 32 + (abs * 146 / 60), 28, 200], 4);
+    render_string(10, y / 2 + 16, 0, "FAKE", [10, 10, 10, 125], 4);
+    render_string(10, y / 2 + 15, 0, "FAKE", [192 - (abs * 71 / 60), 32 + (abs * 146 / 60), 28, 200], 4);
 
     // Render the bar's background
-    render_filled_rect(12, y - 68, 64, 4, [10, 10, 10, 125]);
+    render_filled_rect(12, y / 2 + 46, 64, 4, [10, 10, 10, 125]);
 
     // Draw this small tile to fix a small issue that was driving me crazy.
-    render_filled_rect(43, y - 67, 1, 2, [232, 232, 232, 200]);
+    render_filled_rect(43, y / 2 + 47, 1, 2, [232, 232, 232, 200]);
 
     // Render the desync's length under the bar.
-    render_string(41, y - 63, 1, abs.toString( ), [232, 232, 232, 200], 3);
-    render_circle(48, y - 61, 1, [232, 232, 232, 200]);
+    render_string(41, y / 2 + 52, 1, abs.toString( ), [232, 232, 232, 200], 3);
+    render_circle(48, y / 2 + 52, 1, [232, 232, 232, 200]);
 
     // If our delta is positive, than our desync is headed to the right.
     if (delta > 0)
     {
         // So, fill the bar from the center to the right, accounting for the desync's length.
-        render_filled_rect(44, y - 67, abs * 31 / 60, 2, [232, 232, 232, 200]);
+        render_filled_rect(44, y / 2 + 47, abs * 31 / 60, 2, [232, 232, 232, 200]);
         return;
     }
 
     // If our delta is not positive, than our desync is headed to the left.
     // So, fill the bar from the center to the left.
-    render_filled_rect(44 - abs * 31 / 60, y - 67, abs * 31 / 60, 2, [232, 232, 232, 200]);
+    render_filled_rect(44 - abs * 31 / 60, y / 2 + 47, abs * 31 / 60, 2, [232, 232, 232, 200]);
 }
 
 /**
