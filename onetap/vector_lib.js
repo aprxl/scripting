@@ -1,9 +1,11 @@
 //region dependencies
 
+// Heavily inspired by Kessie's Vector LIB for LuaJIT.
+// https://github.com/KessieHeldieheren/Havoc-Vector
 
 /**
  * @title Vector
- * @version 1.0.0
+ * @version 1.0.1
  * @description A 2d and 3d Vector and angle lib for Onetap.
  */
 
