@@ -1101,7 +1101,7 @@ Angle.prototype.fov_to = function(from, to)
   if (angles.y > 180)
     angles.y = 360 - angles.y;
 
-  return angles.length2d();
+  return Math.sqrt(angles.x ** 2 + angles.y ** 2);
 }
 
 //endregion
