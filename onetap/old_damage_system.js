@@ -226,9 +226,7 @@ menu.visibility = function(elem, visible)
  *
  * @typedef Vector {x: number, y: number, z: number}
  */
-var vector = {
-    __class: 'vector'
-};
+var vector = {};
 
 /**
  * @brief Creates a new 3d vector instance.
@@ -455,9 +453,7 @@ const show_dmg = menu.call(ui.add_checkbox, "Show minimum damage", "italy_indica
  * @class target
  * @brief Handles the targeting system
  */
-var target = {
-    __class: "target" // Shut up about your "overcomplication"
-};
+var target = {};
 
 /**
  * Returns the entity ID of the closest player to your crosshair.
@@ -505,8 +501,6 @@ target.get_closest = function( )
  * @brief Handles the configuration updates and the menu visibility.
  */
 var config_system = {
-    __class: "config_system",
-
     current_config_id: 0,
     last_weapon: 0,
 
@@ -584,9 +578,7 @@ config_system.update = function( )
  * @class damage_system
  * @brief Handles the updates of the minimum damage.
  */
-var damage_system = {
-    __class: "damage_system"
-};
+var damage_system = {};
 
 /**
  * Updates the cheat's minimum damage.
