@@ -14,9 +14,7 @@ const global = [], globals = [], sound = [], cheat = [], local = [], world = [],
  * @description A better UI system for Onetap
  */
 
-var menu = {
-    _class: 'BetterUI'
-};
+var menu = {};
 const menu_spacer = "                                                                                  ";
 
 /**
