@@ -657,8 +657,8 @@ damage_system.update = function(target)
  */
 function on_paint( )
 {
-    // Update our configuration.
-    config_system.update( );
+    // Handle the menu visibility.
+    config_system.handle_visibility( );
     
     // Return if our indicator is not enabled.
     if (!menu.get(show_dmg))
@@ -678,8 +678,10 @@ function on_paint( )
  */
 function on_create_move( )
 {
-    config_system.handle_visibility( );
+    // Update our configuration.
+    config_system.update( );
     
+    // Update our minimum damage settings.
     damage_system.update(target.get_closest( ));
 }
 
