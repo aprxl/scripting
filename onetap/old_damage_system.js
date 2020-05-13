@@ -624,7 +624,7 @@ damage_system.update = function(target)
     for (var i = 0; i < 7; i++)
     {
         // Get our current hitbox's position.
-        const hitbox = entity.get_hitbox_position(target, 0);
+        const hitbox = entity.get_hitbox_position(target, i);
 
         // Trace a line from our eye position to the hitbox position in order to see if it is visible.
         const trace = Trace.Line(me, origin, hitbox);
