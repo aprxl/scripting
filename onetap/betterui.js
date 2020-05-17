@@ -203,9 +203,6 @@ menu.add_event = function(elem, func)
     if (!elem.path)
         throw new Error("[Menu] This element doesn't exist!");
 
-    if (elem.callback)
-        throw new Error("[Menu] This element already has a callback!");
-
     elem.callback = func;
 }
 
