@@ -165,7 +165,7 @@ function on_player_hurt() {
     for (var i in hitboxes) {
         // Get the current hitbox and it's position.
         const hitbox = hitboxes[i];
-        const hitbox_position = Entity.GetHitboxPosition(userid, hitbox);
+        const hitbox_position = Entity.GetHitboxPosition(userid, hitbox); // Why is this not localized? Onetap was fucking my ass sideways, that's why.
 
         // Calculate the distance between our bullet_impact position and this hitbox's position.
         const distance = sqrt((current.pos[0] - hitbox_position[0]) ** 2 + (current.pos[1] - hitbox_position[1]) ** 2 + (current.pos[2] - hitbox_position[2]) ** 2);
