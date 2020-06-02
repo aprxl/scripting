@@ -147,14 +147,14 @@ function on_player_hurt() {
     const tick = tickcount();
 
     // If there's no data in this tick, it means that our bullet_impact wasn't registered and, thus, there's nothing we should do.
-    if (data[tick] == undefined || data[tick][me] == undefined)
+    if (data[tick] == undefined)
         return;
 
     // Get the hitgroup our bullet hit.
     const hitgroup = get_int("hitgroup");
 
     // Get some more data and convert our hitgroup into an array of hitboxes.
-    const current = data[tick][me];
+    const current = data[tick];
     const hitboxes = hitgroup_to_hitbox[hitgroup];
 
     // Setup a variable to do distance-based calculations
@@ -165,7 +165,7 @@ function on_player_hurt() {
     for (var i in hitboxes) {
         // Get the current hitbox and it's position.
         const hitbox = hitboxes[i];
-        const hitbox_position = Entity.GetHitboxPosition(userid, hitbox); // Why is this not localized? Onetap was fucking my ass sideways, that's why.
+        const hitbox_position = Entity.GetHitboxPosition(userid, hitbox);
 
         // Calculate the distance between our bullet_impact position and this hitbox's position.
         const distance = sqrt((current.pos[0] - hitbox_position[0]) ** 2 + (current.pos[1] - hitbox_position[1]) ** 2 + (current.pos[2] - hitbox_position[2]) ** 2);
