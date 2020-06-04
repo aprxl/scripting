@@ -9,6 +9,7 @@
 local enable = ui.new_checkbox("AA", "Anti-aimbot angles", "Better body freestanding")
 local mode = ui.new_combobox("AA", "Anti-aimbot angles", "Body freestanding mode", { "Hide real", "Hide fake" })
 local smart = ui.new_checkbox("AA", "Anti-aimbot angles", "Smart mode")
+local indicator = ui.new_checkbox("AA", "Anti-aimbot angles", "Show 'FAKE' indicator")
 
 -- And reference the ones I'll be using
 local ref_body_freestanding = ui.reference("AA", "Anti-aimbot angles", "Freestanding body yaw")
@@ -36,7 +37,10 @@ local on_setup_command = function(cmd)
     if not me or entity.get_prop(me, "m_lifeState") ~= 0 then
         return
     end
-
+    
+    -- Disable the cheat's built-in freestanding
+    ui.set(ref_body_freestanding, false)
+    
     -- Get the server's current time
     local now = globals.curtime()
 
@@ -106,6 +110,11 @@ local on_setup_command = function(cmd)
 end
 
 local on_paint = function()
+    -- Check if we should draw the indicator
+    if not ui.get(indicator) then
+        return
+    end
+    
     -- Get local player
     local me = entity.get_local_player()
 
