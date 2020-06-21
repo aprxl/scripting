@@ -71,7 +71,7 @@ menu.new = function(func, name, label, properties)
     const final_name = name + menu_spacer + label;
     var final_props = [final_name];
     const element_info_t = {
-        path: ["Misc", "JAVASCRIPT", "Script Items", final_name]
+        path: ["Misc", "JAVASCRIPT", "Script items", final_name]
     };
 
     // If our properties aren't null, then pack them together.
@@ -228,6 +228,7 @@ menu.visibility = function(elem, visible)
 var cache = {
     time: 0,
     outside: false,
+    fraction: 0
 };
 
 const paths = {
@@ -258,7 +259,6 @@ const CHAT_COLOR = {
 //endregion
 
 //region menu
-
 // Create our menu elements
 const override = menu.new(ui.add_checkbox, "| Override world settings", "br_ovr", []);
 
@@ -267,6 +267,7 @@ const ref_skybox = menu.reference(["Visual", "WORLD", "Map", "Skybox"]);
 const ref_weather = menu.reference(["Visual", "WORLD", "Map", "Weather"]);
 const ref_nightmode_amount = menu.reference(["Visual", "WORLD", "Map", "Nightmode"]);
 
+const ref_force_cheat = menu.reference(["Misc", "GENERAL", "Miscellaneous", "Force sv_cheats"]);
 //endregion
 
 //region functions
@@ -339,6 +340,9 @@ function on_paint()
     {
         // If so, set our override switch to false since we only want to execute this once.
         menu.set(override, false);
+        
+        // Force sv_cheat so our fog settings work.
+        menu.set(ref_force_cheat, true);
 
         // Update the world settings.
         menu.set(ref_weather, 2);
@@ -349,35 +353,31 @@ function on_paint()
         cheat.print_chat("[" + CHAT_COLOR.CYAN + "Weather" + CHAT_COLOR.WHITE + "] " + CHAT_COLOR.GRAY + "Your world settings have been successfully overwritten!");
     }
 
-    // Get our local player.
-    const me = entity.get_local_player();
+    // Play the soundscape.
+    play_soundscape(cache.fraction);
+}
 
-    // If our local player isn't valid, then we're not in-game.
-    // So, there's no need to do anything.
-    if (!me)
-        return;
+/**
+ * Handles the tracing.
+ * 
+ * @callback CreateMove
+ */
+function on_create_move()
+{
+     // Get our local player.
+     const me = entity.get_local_player();
 
-    // Check if we're not alive.
-    if (!entity.is_alive(me))
-    {
-        // If so, check if we're spectating someone.
-        if (entity.get_prop(me, "CBasePlayer", "m_iObserverMode") < 3)
-            return;
-        
-        // And, if so, override our local player to the player we're spectating.
-        // This way, the soundscapes should work correctly even when we're spectating someone.
-        me = entity.get_prop(me, "CBasePlayer", "m_hObserverTarget");
-    }
+     // If our local player isn't valid, then we're not in-game.
+     // So, there's no need to do anything.
+     if (!me || !entity.is_alive(me))
+         return;
 
     // Get some vectors..
     const origin = entity.get_render_origin(me);
     const destination = [origin[0], origin[1], origin[2] + 1028];
 
     // And use them to check if there's anything above us.
-    const frac = trace.line(me, origin, destination)[1];
-
-    // Play the soundscape.
-    play_soundscape(frac);
+    cache.fraction = trace.line(me, origin, destination)[1];
 }
 
 /**
@@ -398,5 +398,5 @@ function on_shutdown()
 // Create our callbacks.
 cheat.register_callback("shutdown", "on_shutdown");
 cheat.register_callback("paint", "on_paint");
-
+cheat.register_callback("create_move", "on_create_move");
 //endregion
