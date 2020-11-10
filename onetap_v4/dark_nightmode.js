@@ -11,6 +11,11 @@
 // Declare our CEnvTonemapController's ClassID.
 const CEnvTonemapController = 69;
 //endregion
+
+// Create a cache object to store our cached variables.
+var cache = {
+    amount: -1
+};
 //endregion
 
 //region Menu
@@ -47,6 +52,12 @@ function updateAutoExposure( entity, min, max ) {
 //region Callbacks
 // Hana forced me into naming the callback MSPaint uwu
 function msPaint(  ) {
+
+    // Check if our local player is a valid entity.
+    // Do this to check if we're connected to a game.
+    if ( !Entity.IsValid( Entity.GetLocalPlayer(  ) ) )
+        return;
+
     // Get our current CEnvTonemapController.
     const tonemap_controller = Entity.GetEntitiesByClassID( CEnvTonemapController )[ 0 ];
 
@@ -57,6 +68,15 @@ function msPaint(  ) {
     // Get our night mode amount.
     const amount = UI.GetValue( ref_night_mode );
 
+    // Check if our value has changed from the last frame to this frame.
+    // Doing this for better performance as we don't need to change
+    // the props every frame.
+    if ( cache.amount === amount )
+        return;
+
+    // Cache our current amount for further checks.
+    cache.amount = amount;
+    
     // Update the auto exposure and bloom.
     updateAutoExposure(
         tonemap_controller,
