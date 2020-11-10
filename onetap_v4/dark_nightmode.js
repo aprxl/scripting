@@ -16,6 +16,9 @@ const CEnvTonemapController = 69;
 var cache = {
     amount: -1
 };
+
+// Create a global variable to save our last CEnvTonemapController.
+var tonemap_controller = null
 //endregion
 
 //region Menu
@@ -31,13 +34,18 @@ const ref_night_mode = [ "Visuals", "World", "General", "Night mode" ];
  * @param number min 
  * @param number max 
  */
-function updateAutoExposure( entity, min, max ) {
+function updateAutoExposure( entity, active, min, max ) {
+
+    // Check if our CEnvTonemapController is not null.
+    if ( !entity )
+        return;
+
     // Force the entity to use our custom values for auto exposure
-    Entity.SetProp( entity, "CEnvTonemapController", "m_bUseCustomAutoExposureMin", true );
-    Entity.SetProp( entity, "CEnvTonemapController", "m_bUseCustomAutoExposureMax", true );
+    Entity.SetProp( entity, "CEnvTonemapController", "m_bUseCustomAutoExposureMin", active );
+    Entity.SetProp( entity, "CEnvTonemapController", "m_bUseCustomAutoExposureMax", active );
 
     // And bloom.
-    Entity.SetProp( entity, "CEnvTonemapController", "m_bUseCustomBloomScale", true );
+    Entity.SetProp( entity, "CEnvTonemapController", "m_bUseCustomBloomScale", active );
 
     // Override the custom values.
     Entity.SetProp( entity, "CEnvTonemapController", "m_flCustomAutoExposureMin", min );
@@ -59,7 +67,7 @@ function msPaint(  ) {
         return;
 
     // Get our current CEnvTonemapController.
-    const tonemap_controller = Entity.GetEntitiesByClassID( CEnvTonemapController )[ 0 ];
+    tonemap_controller = Entity.GetEntitiesByClassID( CEnvTonemapController )[ 0 ];
 
     // Check if our CEnvTonemapController is valid.
     if ( !Entity.IsValid( tonemap_controller ) )
@@ -80,13 +88,37 @@ function msPaint(  ) {
     // Update the auto exposure and bloom.
     updateAutoExposure(
         tonemap_controller,
-        amount * 0.1,
-        amount * 0.1
+        true,
+        0.1 - amount * 0.099,
+        0.1 - amount * 0.099
+    );
+}
+
+function onRoundPreStart(  ) {
+    // Reset the cached amount on round start, forcing the application of the auto exposure.
+    cache.amount = -1;
+}
+
+function onPlayerConnectFull(  ) {
+    // Reset the cached amount on connect, forcing the application of the auto exposure.
+    cache.amount = -1;
+}
+
+function onUnload(  ) {
+    // Reset the auto exposure.
+    updateAutoExposure( 
+        tonemap_controller,
+        false,
+        0,
+        0
     );
 }
 
 // Register our Draw callback
 // Global just to piss everyone off ( also Hana's idea ).
 Global.RegisterCallback( 'Draw', 'msPaint' );
+Global.RegisterCallback( 'Unload', 'onUnload' );
+Global.RegisterCallback( 'round_prestart', 'onRoundPreStart' );
+Global.RegisterCallback( 'player_connect_full', 'onPlayerConnectFull' );
 //endregion
 //endregion
