@@ -9,7 +9,6 @@
 //region Dependencies
 //region Menu
 // Dependencies that makes UI.Add... elements return their respective paths.
-// Deprecated with newest update.
 function fixUIBehaviour() {
     for(var i in UI) {
         if(!~i.indexOf("Add"))
@@ -534,6 +533,10 @@ function onDraw(  ) {
         shared.fonts.default = Render.AddFont( "segoeuib", 30, 0 );
         shared.fonts.small = Render.AddFont( "segoeuib", 9, 0 );
     }
+
+    // Check if we're in game by checking if the local player is valid.
+    if ( !Entity.IsValid( Entity.GetLocalPlayer( ) ) )
+        return;
 
     // Check if the script is enabled.
     if ( !UI.GetValue( mode ) )
