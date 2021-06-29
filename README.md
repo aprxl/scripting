@@ -3,6 +3,6 @@
 
 ![GitHub forks](https://img.shields.io/github/forks/aprxl/lua-scripting?color=%23bffff1&label=Forks) ![Language](https://img.shields.io/badge/lang-javascript-%23bffff1) ![Language](https://img.shields.io/badge/lang-lua-%23bffff1)
 
-Here all of my scripts/plugins for *gamesense.pub*, *aimware.net*, *onetap.com* and *fatality.win* will be found.
+Here all of my scripts/plugins for *gamesense.pub*, *aimware.net*, *onetap.com* and *monolith.club* will be found.
 
-&copy; aprxl, 2020.
+&copy; aprxl, 2021.
